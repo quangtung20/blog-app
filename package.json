@@ -1,0 +1,43 @@
+{
+  "name": "blog-app-typescript",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "dependencies": {
+    "bcrypt": "^5.0.1",
+    "cookie-parser": "^1.4.6",
+    "cors": "^2.8.5",
+    "dotenv": "^10.0.0",
+    "express": "^4.17.1",
+    "google-auth-library": "^7.10.2",
+    "jsonwebtoken": "^8.5.1",
+    "mongoose": "^6.0.13",
+    "morgan": "^1.10.0",
+    "node-fetch": "^2.6.1",
+    "nodemailer": "^6.7.1",
+    "nodemon": "^2.0.15",
+    "react-facebook-login-lite": "^1.0.0",
+    "socket.io": "^4.4.0",
+    "twilio": "^3.71.2"
+  },
+  "devDependencies": {
+    "@types/bcrypt": "^5.0.0",
+    "@types/cookie-parser": "^1.4.2",
+    "@types/cors": "^2.8.12",
+    "@types/dotenv": "^8.2.0",
+    "@types/express": "^4.17.13",
+    "@types/jsonwebtoken": "^8.5.6",
+    "@types/mongoose": "^5.11.97",
+    "@types/morgan": "^1.9.3",
+    "@types/node-fetch": "^2.5.10",
+    "@types/nodemailer": "^6.4.4"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "server": "ts-node server/index.ts",
+    "dev": "nodemon dist/index.js --ignore client",
+    "build": "tsc -w"
+  },
+  "author": "",
+  "license": "ISC"
+}
