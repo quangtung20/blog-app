@@ -1,6 +1,7 @@
 import { Request, Response } from 'express'
 import { IAuth } from '../interfaces/Auth'
 import Categories from '../models/categoryModel'
+import Blogs from '../models/blogModel'
 const categoryCtrl={
     getCategory:async(req:IAuth,res:Response)=>{
         try {
@@ -63,7 +64,16 @@ const categoryCtrl={
             if(checkUser.role !=='admin'){
                 return res.status(400).json({msg: "Invalid Authentication."})
             }
-            await Categories.findByIdAndDelete(req.params.id)
+            const blog = await Blogs.findOne({category:req.params.id})
+            if(blog){
+                return res.status(400).json({
+                    msg: "Can not delete! In this category also exist blogs."
+                  })
+            }
+            const category = await Categories.findByIdAndDelete(req.params.id)
+            if(!category){
+                return res.status(400).json({msg: "Category does not exists."})
+            }
             res.status(200).json({msg:'Delete success'})
         } catch (err:any) {
             return res.status(500).json({msg: err.message})

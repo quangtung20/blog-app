@@ -8,6 +8,7 @@ import Users from '../models/userModel'
 import jwt from "jsonwebtoken"
 import { IDecodeToken } from '../interfaces/DecodeToken'
 import { IGgUser, IUser, IGUserParams, INewUser } from '../interfaces/User'
+import { IAuth } from '../interfaces/Auth'
 import fetch from 'node-fetch'
 import { OAuth2Client } from 'google-auth-library'
 
@@ -69,9 +70,17 @@ const authCtrl = {
             return res.status(500).json({ msg: 'error from server' })
         }
     },
-    logout: async (req: Request, res: Response) => {
+    logout: async (req: IAuth, res: Response) => {
+        if(!req.user){
+            {return res.status(400).json({msg: "Invalid authentication"})}
+        }
         try {
             res.clearCookie('refreshtoken', { path: `/api/refresh_token` })
+
+            await Users.findOneAndUpdate({_id: req.user._id}, {
+                rf_token: ''
+              })
+
             return res.json({ msg: 'logged out!' })
         } catch (error) {
             return res.status(500).json({ msg: 'error from server' })
@@ -84,11 +93,16 @@ const authCtrl = {
     
           const decoded = <IDecodeToken>jwt.verify(rf_token, `${process.env.REFRESH_TOKEN_SECRET}`)
           if(!decoded._id) {return res.status(400).json({msg: "Please login now!"})}
-          const user = await Users.findById(decoded._id).select("-password")
+          const user = await Users.findById(decoded._id).select("-password +rf_token")
           if(!user) {return res.status(400).json({msg: "This account does not exist."})}
     
-          const access_token = token.generateAccessToken({id: user._id})
-    
+          const access_token = token.generateAccessToken({_id: user._id})
+          const refresh_token = token.generateRefreshToken({_id: user._id}, res)
+
+          await Users.findOneAndUpdate({_id: user._id}, {
+            rf_token: refresh_token
+          })
+
           res.json({ access_token, user })
           
         } catch (err: any) {
@@ -208,13 +222,11 @@ const loginUser = async (user: (IUser | null), password: string, res: Response) 
     }
 
     const access_token = token.generateAccessToken({ _id: user._id })
-    const refresh_token = token.generateRefreshToken({ _id: user._id })
+    const refresh_token = token.generateRefreshToken({ _id: user._id },res)
 
-    res.cookie('refreshtoken', refresh_token, {
-        httpOnly: true,
-        maxAge: 30 * 24 * 60 * 60 * 1000,
-        path: `/api/refresh_token`,
-    })
+    await Users.findOneAndUpdate({_id: user._id}, {
+        rf_token:refresh_token
+      })
 
     console.log(user)
 
@@ -234,13 +246,10 @@ const registerByOauth = async (user: IGUserParams, res: Response) => {
     newUser.save()
 
     const access_token = token.generateAccessToken({ id: newUser._id })
-    const refresh_token = token.generateRefreshToken({ id: newUser._id })
+    const refresh_token = token.generateRefreshToken({ id: newUser._id },res)
 
-    res.cookie('refreshtoken', refresh_token, {
-        httpOnly: true,
-        maxAge: 30 * 24 * 60 * 60 * 1000,
-        path: `/api/refresh_token`,
-    })
+    newUser.rf_token = refresh_token
+    await newUser.save()
 
     res.status(200).json({
         msg: 'login success',

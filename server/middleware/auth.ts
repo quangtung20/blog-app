@@ -17,8 +17,9 @@ export const auth = async(req:IAuth,res:Response,next:NextFunction)=>{
         if(!decoded) {
             return res.status(400).json({msg: "Invalid Authentication."})
         }
+        console.log('day la decode: ',decoded)
 
-        const user = <IUser>await Users.findOne({_id:decoded._id})
+        const user = await Users.findOne({_id:decoded._id}).select("-password")
         if(!user) {
             return res.status(400).json({msg: "User does not exist"})
         }

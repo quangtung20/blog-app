@@ -13,6 +13,7 @@ export interface IUser extends Document {
     avatar: string
     role: string
     type: string
+    rf_token?:string
     _doc: object // vi data chua nhieu thong tin ko can thiet nen _doc de lay noi dung data 
 }
 
